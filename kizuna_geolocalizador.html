@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KIZUNA · Geolocalizador de recursos</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root { --pri:#5b2a86; --pri2:#7e4bb0; --ok:#1f9d55; --warn:#d97706; --err:#c53030; --bg:#f6f4fa; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:#222; height:100vh; display:flex; flex-direction:column; }
+  header { background:var(--pri); color:#fff; padding:12px 20px; display:flex; align-items:center; gap:12px; }
+  header h1 { font-size:18px; margin:0; font-weight:600; }
+  header span { font-size:13px; opacity:.85; }
+  main { flex:1; display:flex; min-height:0; }
+  aside { width:400px; padding:16px; overflow-y:auto; background:#fff; border-right:1px solid #ddd; display:flex; flex-direction:column; gap:14px; }
+  #map { flex:1; }
+  h2 { font-size:14px; margin:0 0 6px; color:var(--pri); text-transform:uppercase; letter-spacing:.5px; }
+  textarea, input { width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-family:inherit; font-size:13px; }
+  textarea { height:110px; resize:vertical; }
+  .hint { font-size:11px; color:#666; margin-top:4px; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; }
+  button { background:var(--pri); color:#fff; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:13px; }
+  button:hover { background:var(--pri2); }
+  button.sec { background:#eee; color:#333; }
+  button.sec:hover { background:#ddd; }
+  button:disabled { opacity:.5; cursor:wait; }
+  .card { border:1px solid #e3dcef; border-radius:8px; padding:10px; font-size:13px; cursor:pointer; transition:.15s; }
+  .card:hover { border-color:var(--pri2); box-shadow:0 2px 6px rgba(91,42,134,.15); }
+  .card.nearest { border:2px solid var(--ok); background:#f0fbf4; }
+  .card b { display:block; font-size:14px; }
+  .meta { color:#555; margin-top:4px; }
+  .badge { display:inline-block; font-size:11px; padding:2px 6px; border-radius:10px; color:#fff; margin-right:4px; }
+  .b-carto { background:var(--ok); } .b-nomi { background:#2563eb; } .b-rev { background:var(--err); } .b-man { background:var(--warn); }
+  .dist { float:right; font-weight:600; color:var(--pri); }
+  #log { font-size:11px; color:#555; white-space:pre-wrap; background:#faf9fc; border-radius:6px; padding:6px; max-height:90px; overflow-y:auto; }
+</style>
+</head>
+<body>
+<header>
+  <h1>KIZUNA · Geolocalizador</h1>
+  <span>Dirección → coordenadas → recurso más cercano</span>
+</header>
+<main>
+  <aside>
+    <section>
+      <h2>1 · Recursos (Nombre | Dirección)</h2>
+      <textarea id="input">Menjador Social Navas | Av. Meridiana, 238-240
+Menjador Social Paral·lel | Av Paral.lel 97 bis</textarea>
+      <div class="hint">Una línea por recurso. Si no indicas ciudad se añade «Barcelona». Se normalizan «Av.», «bis» y rangos «238-240».</div>
+      <div class="row" style="margin-top:8px">
+        <button id="btnGeo">Geolocalizar</button>
+        <button class="sec" id="btnExport">Exportar JSON</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>2 · ¿Dónde estoy?</h2>
+      <input id="userAddr" placeholder="Ej.: Plaça de Catalunya, Barcelona">
+      <div class="row" style="margin-top:8px">
+        <button id="btnUserAddr">Buscar dirección</button>
+        <button class="sec" id="btnGps">📍 Usar mi GPS</button>
+      </div>
+      <div class="hint">También puedes hacer clic en el mapa para fijar tu posición.</div>
+    </section>
+
+    <section>
+      <h2>3 · Resultados</h2>
+      <div id="list" style="display:flex;flex-direction:column;gap:8px"></div>
+      <div class="hint">Arrastra un marcador para corregir su posición manualmente.</div>
+    </section>
+
+    <section>
+      <h2>Registro</h2>
+      <div id="log"></div>
+    </section>
+  </aside>
+  <div id="map"></div>
+</main>
+
+<script>
+// ---------- Mapa ----------
+const map = L.map('map').setView([41.3874, 2.1686], 13);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+const userIcon = L.divIcon({ className:'', html:'<div style="width:18px;height:18px;border-radius:50%;background:#2563eb;border:3px solid #fff;box-shadow:0 0 6px rgba(0,0,0,.4)"></div>', iconSize:[18,18], iconAnchor:[9,9] });
+const siteIcon = color => L.divIcon({ className:'', html:`<div style="width:26px;height:26px;border-radius:50% 50% 50% 0;background:${color};transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4)"></div>`, iconSize:[26,26], iconAnchor:[13,26], popupAnchor:[0,-24] });
+
+let sitios = [];       // {nombre, original, direccion, lat, lng, fuente, marker}
+let user = null;       // {lat, lng, marker}
+let line = null;
+
+const $ = id => document.getElementById(id);
+const log = msg => { $('log').textContent += msg + '\n'; $('log').scrollTop = 1e9; };
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// ---------- Normalización ----------
+function normalizar(dir) {
+  let d = dir.trim();
+  d = d.replace(/\bAv(da)?\.?\s+/i, 'Avinguda ')
+       .replace(/\bC\/\s*/i, 'Carrer ')
+       .replace(/\bPg\.?\s+/i, 'Passeig ')
+       .replace(/\bPl\.?\s+/i, 'Plaça ')
+       .replace(/Paral\.?lel/i, 'Paral·lel')
+       .replace(/(\d+)\s*-\s*\d+/g, '$1')        // 238-240 -> 238
+       .replace(/(\d+)\s*(bis|b)\b/gi, '$1')      // 97 bis -> 97
+       .replace(/\s*,\s*(?=\d)/g, ' ')            // "Meridiana, 238" -> "Meridiana 238"
+       .replace(/\s+/g, ' ');
+  if (/Avinguda Paral·lel/i.test(d)) d = d.replace(/Avinguda Paral·lel/i, 'Avinguda del Paral·lel');
+  if (!/barcelona|hospitalet|badalona|cornell|sant |santa /i.test(d)) d += ', Barcelona';
+  return d;
+}
+
+// ---------- Geocodificadores ----------
+async function cartociudad(q) {
+  const url = `https://www.cartociudad.es/geocoder/api/geocoder/candidates?limit=1&q=${encodeURIComponent(q)}`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const d = await r.json();
+  if (Array.isArray(d) && d.length && d[0].lat) return { lat:+d[0].lat, lng:+d[0].lng, fuente:'CartoCiudad', etiqueta:d[0].address };
+  return null;
+}
+async function nominatim(q) {
+  const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=es&q=${encodeURIComponent(q)}`;
+  const r = await fetch(url, { headers: { 'Accept-Language':'es' } });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const d = await r.json();
+  if (d.length) return { lat:+d[0].lat, lng:+d[0].lon, fuente:'Nominatim', etiqueta:d[0].display_name };
+  return null;
+}
+async function geocodificar(q) {
+  try { const r = await cartociudad(q); if (r) return r; log(`  CartoCiudad sin resultado`); }
+  catch (e) { log(`  CartoCiudad no disponible (${e.message}) → Nominatim`); }
+  await sleep(1100); // política de uso Nominatim: 1 petición/seg
+  try { return await nominatim(q); } catch (e) { log(`  Nominatim error: ${e.message}`); return null; }
+}
+
+// ---------- Distancia (Haversine) ----------
+function haversine(a, b) {
+  const R = 6371, rad = x => x * Math.PI / 180;
+  const dLat = rad(b.lat - a.lat), dLng = rad(b.lng - a.lng);
+  const h = Math.sin(dLat/2)**2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+const fmtDist = km => km < 1 ? `${Math.round(km*1000)} m` : `${km.toFixed(2)} km`;
+
+// ---------- Proceso principal ----------
+$('btnGeo').onclick = async () => {
+  $('btnGeo').disabled = true;
+  sitios.forEach(s => s.marker && map.removeLayer(s.marker));
+  sitios = [];
+  const lineas = $('input').value.split('\n').map(l => l.trim()).filter(Boolean);
+
+  for (const l of lineas) {
+    const [nombre, dir] = l.includes('|') ? l.split('|').map(x => x.trim()) : [l, l];
+    const direccion = normalizar(dir);
+    log(`→ ${nombre}: "${dir}" ⇒ "${direccion}"`);
+    const res = await geocodificar(direccion);
+    const s = { nombre, original:dir, direccion, ...(res || { lat:null, lng:null, fuente:'REVISAR' }) };
+    log(res ? `  ✔ ${s.lat.toFixed(6)}, ${s.lng.toFixed(6)} (${s.fuente})` : '  ✖ No encontrada — revisar');
+    sitios.push(s);
+    pintarSitio(s);
+  }
+  ajustarVista();
+  render();
+  $('btnGeo').disabled = false;
+};
+
+function pintarSitio(s) {
+  if (s.lat == null) return;
+  const color = { CartoCiudad:'#1f9d55', Nominatim:'#2563eb', Manual:'#d97706' }[s.fuente] || '#5b2a86';
+  s.marker = L.marker([s.lat, s.lng], { icon:siteIcon(color), draggable:true }).addTo(map)
+    .bindPopup(`<b>${s.nombre}</b><br>${s.original}<br><small>${s.etiqueta || ''}</small>`);
+  s.marker.on('dragend', e => {
+    const p = e.target.getLatLng();
+    Object.assign(s, { lat:p.lat, lng:p.lng, fuente:'Manual' });
+    s.marker.setIcon(siteIcon('#d97706'));
+    log(`✎ ${s.nombre} corregido manualmente: ${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}`);
+    render();
+  });
+}
+
+function ajustarVista() {
+  const pts = sitios.filter(s => s.lat != null).map(s => [s.lat, s.lng]);
+  if (user) pts.push([user.lat, user.lng]);
+  if (pts.length) map.fitBounds(pts, { padding:[60,60], maxZoom:16 });
+}
+
+function render() {
+  const ok = sitios.filter(s => s.lat != null);
+  if (user) ok.forEach(s => s.dist = haversine(user, s));
+  const orden = [...sitios].sort((a, b) => (a.dist ?? 1e9) - (b.dist ?? 1e9));
+  const nearest = user && ok.length ? orden[0] : null;
+
+  if (line) { map.removeLayer(line); line = null; }
+  if (nearest) line = L.polyline([[user.lat, user.lng], [nearest.lat, nearest.lng]], { color:'#1f9d55', dashArray:'6 6', weight:3 }).addTo(map);
+
+  const badge = f => ({ CartoCiudad:'b-carto', Nominatim:'b-nomi', Manual:'b-man' }[f] || 'b-rev');
+  $('list').innerHTML = orden.map((s, i) => `
+    <div class="card ${s === nearest ? 'nearest' : ''}" data-i="${sitios.indexOf(s)}">
+      ${user && s.dist != null ? `<span class="dist">${fmtDist(s.dist)}</span>` : ''}
+      <b>${s === nearest ? '⭐ ' : ''}${s.nombre}</b>
+      <div class="meta">${s.original}</div>
+      <div class="meta"><span class="badge ${badge(s.fuente)}">${s.fuente}</span>
+        ${s.lat != null ? `${s.lat.toFixed(6)}, ${s.lng.toFixed(6)}` : 'Sin coordenadas'}</div>
+      ${s.lat != null ? `<div class="meta"><a href="https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}" target="_blank">Cómo llegar ↗</a></div>` : ''}
+    </div>`).join('');
+
+  document.querySelectorAll('.card').forEach(c => c.onclick = e => {
+    if (e.target.tagName === 'A') return;
+    const s = sitios[+c.dataset.i];
+    if (s.lat != null) { map.setView([s.lat, s.lng], 17); s.marker.openPopup(); }
+  });
+}
+
+// ---------- Ubicación del usuario ----------
+function fijarUsuario(lat, lng, origen) {
+  if (user?.marker) map.removeLayer(user.marker);
+  user = { lat, lng };
+  user.marker = L.marker([lat, lng], { icon:userIcon }).addTo(map).bindPopup(`Tú estás aquí<br><small>${origen}</small>`);
+  log(`◉ Ubicación usuario (${origen}): ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+  render(); ajustarVista();
+}
+
+$('btnUserAddr').onclick = async () => {
+  const q = $('userAddr').value.trim(); if (!q) return;
+  $('btnUserAddr').disabled = true;
+  const r = await geocodificar(normalizar(q));
+  r ? fijarUsuario(r.lat, r.lng, r.fuente) : log('✖ No se encontró tu dirección');
+  $('btnUserAddr').disabled = false;
+};
+$('btnGps').onclick = () => {
+  if (!navigator.geolocation) return log('✖ Geolocalización no soportada');
+  navigator.geolocation.getCurrentPosition(
+    p => fijarUsuario(p.coords.latitude, p.coords.longitude, 'GPS'),
+    e => log(`✖ GPS: ${e.message} (requiere https o localhost)`),
+    { enableHighAccuracy:true, timeout:10000 }
+  );
+};
+map.on('click', e => fijarUsuario(e.latlng.lat, e.latlng.lng, 'clic en mapa'));
+
+// ---------- Exportar ----------
+$('btnExport').onclick = () => {
+  const data = sitios.map(({ nombre, original, direccion, lat, lng, fuente }) => ({ nombre, direccion_original:original, direccion_normalizada:direccion, lat, lng, fuente }));
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+  const a = Object.assign(document.createElement('a'), { href:URL.createObjectURL(blob), download:'kizuna_sitios_geo.json' });
+  a.click();
+};
+
+// Arranque automático con los ejemplos
+$('btnGeo').click();
+</script>
+</body>
+</html>
