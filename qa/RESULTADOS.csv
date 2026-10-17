@@ -1,0 +1,119 @@
+id,pantalla,prueba,esperado,observado,estado
+A01,Bienvenida,Primera visita,Bienvenida sin cuenta,Bienvenida visible,PASS
+A02,Bienvenida,Cambiar a CA,Texto CA y html lang ca,Ambos comprobados,PASS
+A03,Bienvenida,Recargar CA,Conservar CA,CA conservado,PASS
+A04,Bienvenida,ES y Continuar,Inicio ES y lang es,Ambos comprobados,PASS
+A05,Inicio,Volver a raiz tras bienvenida,Inicio sin repetir bienvenida,Inicio visible,PASS
+B01,Resultados,Lista inicial y orden,6 abiertos por minutos,6 en orden 6-8-14-18-22-28,PASS
+B02,Resultados,Texto RAVAL acentuado con espacios y 08001,2 recursos Raval,Menjador y Espai de dutxes,PASS
+B03,Resultados,Borrar busqueda,Texto vacio y 6 abiertos,Texto vacio y 6 abiertos,PASS
+B04,Resultados,GOTIC sin abierto,Encontrar Barri Gotic pese a tilde,1 Barri Gotic cerrado,PASS
+B05-food,Resultados,Categoria food sin filtros,3 recursos,3 recursos,PASS
+B05-sleep,Resultados,Categoria sleep sin filtros,3 recursos,3 recursos,PASS
+B05-shower,Resultados,Categoria shower sin filtros,2 recursos,2 recursos,PASS
+B05-all,Resultados,Categoria all sin filtros,8 recursos,8 recursos,PASS
+B06,Inicio,Buscar CP 08001,2 y open por defecto,2 y open activo,PASS
+B07-Comer,Inicio,Acceso rapido Comer,food y 1 abierto,food y 1 abierto,PASS
+B07-Ducha,Inicio,Acceso rapido Ducha,shower y 2 abiertos,shower y 2 abiertos,PASS
+B07-Centro-dia,Inicio,Acceso rapido Centro de dia,all y 1 Meridiana,all y 1 Meridiana,PASS
+C01,Resultados,Busqueda inexistente,0 y mensaje sin resultados,0 y mensaje visible,PASS
+C02,Resultados,Restablecer vacio,8 sin filtros ni texto categoria all,8 sin filtros ni texto categoria all,PASS
+C03-open,Resultados,Abierto individual,6 excluyendo cerrado y sin plazas,6 abiertos,PASS
+C03-direct,Resultados,Directo individual,6 recursos,6 recursos,PASS
+C03-near,Resultados,Menos de 15 min individual,5 recursos,5 recursos,PASS
+C03-appointment,Resultados,Sin cita individual,7 recursos,7 recursos,PASS
+C03-accessible,Resultados,Accesible individual,5 recursos,5 recursos,PASS
+C04,Resultados,Cinco filtros juntos,Solo Menjador Social del Raval,Solo Menjador Social del Raval,PASS
+D01,Cuestionario,Volver conserva respuesta,Informacion sigue seleccionada,aria-pressed true al regresar,PASS
+D02,Cuestionario,Comer y Sin derivacion,open y direct con 1 recurso,open y direct con 1 recurso,PASS
+D03-sleep,Cuestionario,Dormir tres pasos por defecto,sleep y 3 abiertos,sleep y 3 abiertos,PASS
+D03-shower,Cuestionario,Ducha tres pasos por defecto,shower y 2 abiertos,shower y 2 abiertos,PASS
+D04-paso-1,Cuestionario,Omitir primer paso,Ir a resultados,Pasa a pregunta 2 y sigue questions,FAIL
+D04-paso-2,Cuestionario,Omitir segundo paso,Ir a resultados,Pasa a pregunta 3 y sigue questions,FAIL
+D04-paso-3,Cuestionario,Omitir tercer paso,Ir a resultados,Abre results,PASS
+D05,Cuestionario,Omitir final no aplica directo,open sin direct,direct false y abierto conservado,PASS
+D06,Cuestionario,Recargar questions,Pantalla acorde a URL,Inicio con hash questions,FAIL
+D07,Cuestionario,Respuestas neutrales y privacidad,3 de dormir y sin respuestas persistidas,3 y solo 3 claves sjd; ninguna peticion no GET,PASS
+D08,Cuestionario,Volver en pasos 2 y 1,Paso 1 y despues Inicio,Ambas transiciones comprobadas,PASS
+E01,Mapa,Marcadores iniciales,6 marcadores,6 marcadores,PASS
+E02-raval,Mapa,Click normal Raval en movil,Abrir ficha Raval,Marcador de dutxes intercepta centro; timeout,FAIL
+E02-meridiana,Mapa,Click marcador Meridiana,Abrir ficha Meridiana,Ficha correcta visible,PASS
+E03,Mapa,Cerrar seleccion,Volver al resumen,Resumen visible sin ficha,PASS
+E04,Mapa,Resumen y Mas informacion,Detalle del primer recurso,detail/raval-food abierto,PASS
+E05,Mapa,Zoom mas y menos,Cambiar nivel relativo,Teselas de nivel 13 a 14 y regreso,PASS
+E06,Resultados,Mapa a lista,6 fichas,6 fichas,PASS
+E07,Mapa,Bloquear teselas,Aviso explicito de error,Aviso indica consultar Lista,PASS
+E08,Resultados,Lista tras error de mapa,6 fichas consultables,6 fichas consultables,PASS
+F01-raval-food,Detalle,Contenido y contrato ficha,10 comprobaciones correctas,10 de 10 correctas,PASS
+F02-raval-food,Detalle,Categoria y minutos FR-18,Comer y 6 min visibles,Ambos ausentes,FAIL
+F01-night-shelter,Detalle,Contenido y contrato ficha,10 comprobaciones correctas,10 de 10 correctas,PASS
+F02-night-shelter,Detalle,Categoria y minutos FR-18,Dormir y 18 min visibles,Ambos ausentes,FAIL
+F01-meridiana,Detalle,Contenido y contrato ficha,10 comprobaciones correctas,10 de 10 correctas,PASS
+F02-meridiana,Detalle,Categoria y minutos FR-18,Ducharme y 22 min visibles,Ambos ausentes,FAIL
+F01-raval-shower,Detalle,Contenido y contrato ficha,10 comprobaciones correctas,10 de 10 correctas,PASS
+F02-raval-shower,Detalle,Categoria y minutos FR-18,Ducharme y 8 min visibles,Ambos ausentes,FAIL
+F01-poble-sec-food,Detalle,Contenido y contrato ficha,10 comprobaciones correctas,10 de 10 correctas,PASS
+F02-poble-sec-food,Detalle,Categoria y minutos FR-18,Comer y 12 min visibles,Ambos ausentes,FAIL
+F01-sants-sleep,Detalle,Contenido y contrato ficha,10 comprobaciones correctas,10 de 10 correctas,PASS
+F02-sants-sleep,Detalle,Categoria y minutos FR-18,Dormir y 28 min visibles,Ambos ausentes,FAIL
+F01-gothic-food,Detalle,Contenido y contrato ficha,10 comprobaciones correctas,10 de 10 correctas,PASS
+F02-gothic-food,Detalle,Categoria y minutos FR-18,Comer y 9 min visibles,Ambos ausentes,FAIL
+F01-barceloneta-sleep,Detalle,Contenido y contrato ficha,10 comprobaciones correctas,10 de 10 correctas,PASS
+F02-barceloneta-sleep,Detalle,Categoria y minutos FR-18,Dormir y 14 min visibles,Ambos ausentes,FAIL
+G01,Favoritos,Estado vacio,Mensaje y buscar recursos,Ambos visibles,PASS
+G02,Detalle,Guardar y anuncio,Favorito activo y confirmacion,Ambos comprobados,PASS
+G03,Favoritos,Guardar desde lista y ver ambos,2 favoritos,2 favoritos,PASS
+G04,Favoritos,Recargar favoritos,Conservar 2,Conserva 2,PASS
+G05,Favoritos,Quitar ambos,Reducir a 1 y despues vacio,Ambas transiciones comprobadas,PASS
+G06,Favoritos,JSON roto,0 favoritos sin romper UI,0 y UI operativa,PASS
+G07,Favoritos,Duplicados e IDs invalidos,2 IDs validos unicos,Meridiana y Raval una vez,PASS
+G08,Mas,Fallar getItem y setItem,Idioma y favoritos funcionan en sesion,SecurityError confirmado y acciones funcionan,PASS
+G09,Favoritos,Recargar con storage bloqueado,No persistir CA ni favoritos,ES y sin favoritos; storage restaurado,PASS
+H01,Inicio,Contratos emergencia,3 tel correctos sin llamar,112 y 900703030 y 900900120,PASS
+H02,Mas,Privacidad datos y Figma,Textos visibles y enlace externo,Textos y href y target correctos,PASS
+H03,Navegacion,Historial navegador,Atras Inicio y adelante Mas,Ambas pantallas correctas,PASS
+H04-inexistente,Navegacion,Hash no reconocido,Fallback Inicio sin romper UI,Inicio; hash original conservado,PASS
+H04-detail-invalido,Navegacion,Detalle desconocido,Fallback Inicio sin romper UI,Inicio; hash original conservado,PASS
+H05,Inicio,Activar salto con Enter,Foco en main,Foco en main,PASS
+H06,Cuestionario,Enter en necesidad,Abrir pregunta con foco main,Pregunta abierta y foco main,PASS
+H07,Cuestionario,Enter Siguiente y Tab,Paso 2 y foco Omitir,Ambos comprobados,PASS
+I-320-bienvenida,Bienvenida,Anchura 320x740,Sin overflow y shell <=480,Viewport 320 y documento 320,PASS
+I-320-inicio,Inicio,Anchura 320x740,Sin overflow y shell <=480,Viewport 320 y documento 305,PASS
+I-320-pregunta-1,Cuestionario,Anchura 320x740,Sin overflow y shell <=480,Viewport 320 y documento 320,PASS
+I-320-pregunta-2,Cuestionario,Anchura 320x740,Sin overflow y shell <=480,Viewport 320 y documento 320,PASS
+I-320-pregunta-3,Cuestionario,Anchura 320x740,Sin overflow y shell <=480,Viewport 320 y documento 320,PASS
+I-320-mapa,Resultados,Anchura 320x740,Sin overflow y shell <=480,Viewport 320 y documento 305,PASS
+I-320-lista,Resultados,Anchura 320x740,Sin overflow y shell <=480,Viewport 320 y documento 305,PASS
+I-320-detalle,Detalle,Anchura 320x740,Sin overflow y shell <=480,Viewport 320 y documento 305,PASS
+I-320-favoritos,Favoritos,Anchura 320x740,Sin overflow y shell <=480,Viewport 320 y documento 320,PASS
+I-320-mas,Mas,Anchura 320x740,Sin overflow y shell <=480,Viewport 320 y documento 305,PASS
+I-390-bienvenida,Bienvenida,Anchura 390x844,Sin overflow y shell <=480,Viewport 390 y documento 390,PASS
+I-390-inicio,Inicio,Anchura 390x844,Sin overflow y shell <=480,Viewport 390 y documento 390,PASS
+I-390-pregunta-1,Cuestionario,Anchura 390x844,Sin overflow y shell <=480,Viewport 390 y documento 390,PASS
+I-390-pregunta-2,Cuestionario,Anchura 390x844,Sin overflow y shell <=480,Viewport 390 y documento 390,PASS
+I-390-pregunta-3,Cuestionario,Anchura 390x844,Sin overflow y shell <=480,Viewport 390 y documento 390,PASS
+I-390-mapa,Resultados,Anchura 390x844,Sin overflow y shell <=480,Viewport 390 y documento 390,PASS
+I-390-lista,Resultados,Anchura 390x844,Sin overflow y shell <=480,Viewport 390 y documento 375,PASS
+I-390-detalle,Detalle,Anchura 390x844,Sin overflow y shell <=480,Viewport 390 y documento 375,PASS
+I-390-favoritos,Favoritos,Anchura 390x844,Sin overflow y shell <=480,Viewport 390 y documento 390,PASS
+I-390-mas,Mas,Anchura 390x844,Sin overflow y shell <=480,Viewport 390 y documento 375,PASS
+I-1440-bienvenida,Bienvenida,Escritorio 1440x1000,Viewport real 1440x1000,API declara 1440 pero DOM 638x443,BLOCKED
+I-1440-inicio,Inicio,Escritorio 1440x1000,Viewport real 1440x1000,No ejecutado tras detectar bloqueo de viewport,BLOCKED
+I-1440-pregunta-1,Cuestionario,Escritorio 1440x1000,Viewport real 1440x1000,No ejecutado tras detectar bloqueo de viewport,BLOCKED
+I-1440-pregunta-2,Cuestionario,Escritorio 1440x1000,Viewport real 1440x1000,No ejecutado tras detectar bloqueo de viewport,BLOCKED
+I-1440-pregunta-3,Cuestionario,Escritorio 1440x1000,Viewport real 1440x1000,No ejecutado tras detectar bloqueo de viewport,BLOCKED
+I-1440-mapa,Resultados,Escritorio 1440x1000,Viewport real 1440x1000,No ejecutado tras detectar bloqueo de viewport,BLOCKED
+I-1440-lista,Resultados,Escritorio 1440x1000,Viewport real 1440x1000,No ejecutado tras detectar bloqueo de viewport,BLOCKED
+I-1440-detalle,Detalle,Escritorio 1440x1000,Viewport real 1440x1000,No ejecutado tras detectar bloqueo de viewport,BLOCKED
+I-1440-favoritos,Favoritos,Escritorio 1440x1000,Viewport real 1440x1000,No ejecutado tras detectar bloqueo de viewport,BLOCKED
+I-1440-mas,Mas,Escritorio 1440x1000,Viewport real 1440x1000,No ejecutado tras detectar bloqueo de viewport,BLOCKED
+J01,Mas,Cambiar a CA,Mas CA y lang ca,Textos CA y lang ca,PASS
+J02,Mas,Recarga idioma CA,Conservar lang ca,lang ca conservado,PASS
+J03,Inicio,Inicio CA,Què necessites ara visible,Heading CA visible,PASS
+J04-1,Cuestionario,Paso 1 CA,Quan ho necessites visible,Heading y siguiente CA,PASS
+J04-2,Cuestionario,Paso 2 CA,Per a qui busques ajuda visible,Heading y siguiente CA,PASS
+J04-3,Cuestionario,Paso 3 CA,Quin accés prefereixes visible,Heading y ver recursos CA,PASS
+J05,Resultados,Lista CA,2 duchas y Trucar desactivado,2 y Trucar disabled,PASS
+J06,Detalle,Detalle CA,Com entrar-hi y dias CA,Heading CA y Dilluns a Diumenge,PASS
+J07,Favoritos,Vacio CA,Encara no tens preferits,Heading CA visible,PASS
+J08,Bienvenida,Volver desde Mas CA,Bienvenida CA,Bienvenida CA; despues restaurado ES,PASS
